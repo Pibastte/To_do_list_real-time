@@ -1,0 +1,109 @@
+<h1>Ma todolist</h1>
+
+<ul id='ul'>
+    <% if(list){%>
+        <%
+        for(var i = 0 ; i<list.length ; i++){
+        %>
+            <li class='li'>
+                <span class='supr'><b>❌ </b></span>
+                <span class='innerLi'><%=list[i]%></span>
+            </li>
+        <% } %>
+    <%}else{%>
+        <li id='temporary'>add the things you have to do</li>
+    <%}%>
+</ul>
+<br>
+<div>
+    <p>Que dois-je faire ?</p>
+    <form id='form'>
+        <input id='textField' type='text' value='' autocomplete='off'>
+        <input id='submit' type='button' Value='Valider'>
+    </form>
+</div>
+
+<script>
+    var ul = document.getElementById('ul');
+    var list = document.getElementsByClassName('li');
+    var supr = document.getElementsByClassName('supr');
+    var temporary = (document.getElementById('temporary')||undefined);
+
+    for (var i = 0; i < list.length; i++) {
+        (function(){
+            var currentI = i;
+            console.log(list[currentI]);
+            supr[currentI].addEventListener('click', function(x){
+                console.log('deleting an element');
+                removeFromCookie(x.target.parentNode.parentNode.getElementsByClassName('innerLi')[0].innerHTML);
+                ul.removeChild(x.target.parentNode.parentNode);
+            });
+        })();
+    }
+
+    var submit = document.getElementById('submit');
+    var textField = document.getElementById('textField');
+    var form = document.getElementById('form');
+    submit.addEventListener('click', function(){
+        console.log('ajout d\'une chose a faire...');
+        addListElement(textField.value);
+        if (temporary) {
+            ul.removeChild(temporary);
+            temporary = undefined;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:8080', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({thingToDo: textField.value}));
+        console.log('adding '+textField.value+' to the cookie');
+        textField.value = '';
+    });
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        console.log('ajout d\'une chose a faire...');
+        addListElement(textField.value);
+        if (temporary) {
+            ul.removeChild(temporary);
+            temporary = undefined;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:8080', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({thingToDo: textField.value}));
+        console.log('adding '+textField.value+' to the cookie');
+        textField.value = '';
+    });
+
+
+    var addListElement = function(content) {
+        console.log(content);
+        var suprSpan = document.createElement('span');
+        suprSpan.className = 'supr';
+        var contentSpan = document.createElement('span');
+        contentSpan.className = 'innerLi';
+        contentSpan.innerHTML = String(content);
+        var cross = document.createElement('b');
+        cross.innerHTML = '❌ ';
+        cross.addEventListener('click', function(x){
+            console.log('deleting an element');
+            removeFromCookie(x.target.parentNode.parentNode.getElementsByClassName('innerLi')[0].innerHTML);
+            ul.removeChild(x.target.parentNode.parentNode);
+        });
+        suprSpan.appendChild(cross);
+        var li = document.createElement('li');
+        li.className = 'li';
+        li.appendChild(suprSpan);
+        li.appendChild(contentSpan);
+        ul.appendChild(li);
+    }
+
+    var removeFromCookie = function(content){
+        console.log('thing to delete: ' + content);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:8080', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({thingToDelete: content}));
+    }
+
+</script>
